@@ -53,10 +53,17 @@ MenuItem.prototype.render = function(){
 	return "<li id='" + this.id + "' class='"+this.className+"' href='"+ this.href +"'>" + this.itemName + "</li>";
 }
 
+/*function SubMenu() {
+    Menu.call(this);
+    this.id = "sub_" + m_item1.id;
+    this.class = ""
+} */
+
 var m_item1 = new MenuItem("/", "Главная", "m_item1");
 var m_item2 = new MenuItem("/catalogue/", "Каталог", "m_item2");
 var m_item3 = new MenuItem("/gallery/", "Галерея", "m_item3");
 var m_items = {0: m_item1, 1: m_item2, 2: m_item3};
+//var sub_m_item2 = new SubMenu("/kitchen/", "Кухня", "m_item2");
 
 var menu = new Menu("my_menu", "My_class", m_items);
 var div = document.write(menu.render());
