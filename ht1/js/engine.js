@@ -1,70 +1,163 @@
-function Container()
-{
-    this.id = ""; 
-    this.className = "";
-    this.htmlCode = "123"; 
+//--------- base class Container ---------------
+function Container(nodeName, className, parent) {
+    this.container = document.createElement(nodeName);
+    this.parent = parent;                               
+    this.parent.appendChild(this.container);                        //зачем была создана переменная parent?             подразумевалось ли здесь использование parent.appendChild(this.container);
+    this.container.className = className ? className : '';
 }
 
-Container.prototype.render = function()
-{
-   return this.htmlCode;
+Container.prototype.render = function (text) {
+    this.container.innerHTML = text;
 }
 
-Container.prototype.remove = function() { 
-    var node = document.querySelector("#" + this.id);
-    node.remove();
-    return;
+Container.prototype.remove = function () {
+    this.container.remove();
 }
 
-function Menu(my_id, my_class, my_items){
-   Container.call(this);
-   this.id = my_id;
-   this.className = my_class;
-   this.items = my_items;
+
+
+//---------- base class Menu -------------
+function Menu(nodeName, className, parent, itemsConfig) {
+    Container.call(this, nodeName, className, parent);      
+    this.items = this.createItems(itemsConfig);
 }
 
-Menu.prototype = Object.create(Container.prototype);
+Menu.prototype = Object.create(Container.prototype);    
 Menu.prototype.constructor = Menu;
-Menu.prototype.render = function(){
-	var result = "<ul class='"+this.className+"' id='"+this.id+"'>";
-	
-	for(var item in this.items){
-		if(this.items[item] instanceof MenuItem){
-			result += this.items[item].render();
-		}
-	}
-	
-	result += "</ul>";
-	return result;
+
+Menu.prototype.createItems = function (itemsConfig) {
+    var self = this;
+    return itemsConfig.items.map(function (item, i) {
+        return new MenuItem(itemsConfig.itemNodeName, itemsConfig.itemClassName, self.container, itemsConfig.linkClassName, item, itemsConfig.mainContainerNodeName);
+    });
 }
 
-function MenuItem(my_href, my_name, id){
-   Container.call(this);
-   this.className = "menu-item";
-   this.id = id;
-   this.href = my_href;
-   this.itemName = my_name;
+Menu.prototype.addItem = function(item, parent) {
+    
+}
+
+Menu.prototype.setItemValue = function(id, key, value) {
+    var item = this.getItemById(id);
+    item.setValue(key, value);
+}
+
+Menu.prototype.getItemById = function(id) {
+    
+}
+
+Menu.prototype.removeItem = function(id) {
+    
+}
+
+Menu.prototype.render = function () {
+    var self = this;
+    this.items.forEach(function (item) {
+        item.render();
+    });
+}
+
+
+//--------- base class MenuItem ------------
+function MenuItem(nodeName, className, parent, linkClassName, item, mainNodeName) {
+    Container.call(this, nodeName, className, parent);
+    this.link = document.createElement('a');
+    this.link.className = linkClassName;
+    this.container.appendChild(this.link);
+    this.item = Object.assign({},item);     //область видимости нового объекта - функция - инкапсуляция 
+    if (this.item.items) {
+        this.innerContainer = document.createElement(mainNodeName);
+        this.container.appendChild(this.innerContainer);
+        var self = this;
+        this.items = this.item.items.map(function (item) {
+            return new MenuItem(nodeName, className, self.innerContainer, linkClassName, item, mainNodeName);
+        });
+    }
 }
 
 MenuItem.prototype = Object.create(Container.prototype);
 MenuItem.prototype.constructor = MenuItem;
 
-MenuItem.prototype.render = function(){
-	return "<li id='" + this.id + "' class='"+this.className+"' href='"+ this.href +"'>" + this.itemName + "</li>";
+MenuItem.prototype.render = function () {
+    this.link.innerHTML = this.item.title;
+    this.link.setAttribute('href', this.item.route);
+    if (this.items) this.items.forEach(function (item) {
+        item.render();
+    });
 }
 
-/*function SubMenu() {
-    Menu.call(this);
-    this.id = "sub_" + m_item1.id;
-    this.class = ""
-} */
+MenuItem.prototype.getId = function() {
+    return this.item.id;
+}
 
-var m_item1 = new MenuItem("/", "Главная", "m_item1");
-var m_item2 = new MenuItem("/catalogue/", "Каталог", "m_item2");
-var m_item3 = new MenuItem("/gallery/", "Галерея", "m_item3");
-var m_items = {0: m_item1, 1: m_item2, 2: m_item3};
-//var sub_m_item2 = new SubMenu("/kitchen/", "Кухня", "m_item2");
+MenuItem.prototype.setValue = function(key, value) {
+    this.item[key] = value;
+}
 
-var menu = new Menu("my_menu", "My_class", m_items);
-var div = document.write(menu.render());
-m_item2.remove();
+var itemsConfig = {
+    mainContainerNodeName: 'ul',
+    itemNodeName: 'li',
+    itemClassName: 'some-class',
+    linkClassName: 'some-link-class',
+    items: [
+        {
+            id: "main",
+            route: "/",
+            title: "Главная"
+        },
+        {
+            id: "catalogue",
+            route: "/catalogue/",
+            title: "Каталог",
+            items: [
+                {
+                    id: "catalogue/any-name",
+                    route: "/catalogue/anything",
+                    title: "Что-то",
+                    items: [
+                        {
+                            id: "catalogue/any-name/any-name-more",
+                            route: "/catalogue/anything/more",
+                            title: "Что-то еще",
+                      }
+                    ]
+                }
+            ]
+        },
+        {
+            id: "gallery",
+            route: "/gallery/",
+            title: "Галерея"
+        }
+    ]
+};
+
+var menu = new Menu(itemsConfig.mainContainerNodeName, 'some-class-name', document.querySelector('#append'), itemsConfig);
+menu.render();
+
+//menu.setItemValue('catalogue', 'route', '/catalog/');
+menu.render();
+menu.removeItem('gallery');
+menu.render();
+menu.addItem({
+            id: "gallery",
+            route: "/gallery/",
+            title: "Галерея"
+        }, 
+        'catalogue');
+
+var xhr = new XMLHttpRequest();
+
+xhr.onreadystatechange = function() { 
+  if (xhr.readyState != 4) return;
+
+  if (xhr.status != 200) {
+      alert(xhr.status + ': ' + xhr.statusText);
+  } else {
+      alert(xhr.responseText);
+      itemsConfig.items[0].title = xhr.responseText; 
+      menu.render();
+  }
+}
+
+xhr.open('GET', 'https://jsonplaceholder.typicode.com/todos/1', true);
+xhr.send();
