@@ -1,7 +1,7 @@
 //--------- base class Container ---------------
 function Container(nodeName, className, parent) {
     this.container = document.createElement(nodeName);
-    this.parent = parent;                               
+    this.parent = parent;
     this.parent.appendChild(this.container);                        //зачем была создана переменная parent?             подразумевалось ли здесь использование parent.appendChild(this.container);
     this.container.className = className ? className : '';
 }
@@ -18,7 +18,7 @@ Container.prototype.remove = function () {
 
 //---------- base class Menu -------------
 function Menu(nodeName, className, parent, itemsConfig) {
-    Container.call(this, nodeName, className, parent);      
+    Container.call(this, nodeName, className, parent);
     this.items = this.createItems(itemsConfig);
 }
 
@@ -33,7 +33,6 @@ Menu.prototype.createItems = function (itemsConfig) {
 }
 
 Menu.prototype.addItem = function(item, parent) {
-    
 }
 
 Menu.prototype.setItemValue = function(id, key, value) {
@@ -42,11 +41,9 @@ Menu.prototype.setItemValue = function(id, key, value) {
 }
 
 Menu.prototype.getItemById = function(id) {
-    
 }
 
 Menu.prototype.removeItem = function(id) {
-    
 }
 
 Menu.prototype.render = function () {
